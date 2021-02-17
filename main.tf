@@ -31,11 +31,14 @@ resource "google_compute_http_health_check" "default" {
 # Regional MIG
 resource "google_compute_region_instance_group_manager" "rmig" {
   name               = "${var.rmig_name}"
-  instance_template  = "${google_compute_instance_template.cit.self_link}"
   base_instance_name = "${var.base_instance_name}"
   region             = "${var.region}"
   target_size        = 3
 
+  version {
+    instance_template  = "${google_compute_instance_template.cit.self_link}"
+  }
+  
   named_port {
     name = "http"
     port = 80
@@ -127,9 +130,8 @@ resource "google_compute_health_check" "default" {
 resource "google_compute_region_autoscaler" "cras" {
   name   = "${var.rmig_as_name}"
   region = "${var.region}"
-  target = "${google_compute_region_instance_group_manager.rmig.self_link}"
 
-  autoscaling_policy = {
+  autoscaling_policy {
     max_replicas    = 5
     min_replicas    = 3
     cooldown_period = 60
